@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Lentis Optic - Visual Testing System</title>
+    <style>
+        :root {
+            --primary-blue: #1a237e;
+            --accent-blue: #3949ab;
+            --bg-soft: #fdfdfd;
+            --text-main: #2c3e50;
+        }
+
+        body { 
+            background-color: var(--bg-soft); 
+            color: var(--text-main); 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; height: 100vh;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            overflow: hidden; cursor: default;
+        }
+
+        /* Pagina de Calibrare Modernizata */
+        #calibrare { 
+            position: absolute; top: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        .card-calibrare {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 450px;
+        }
+
+        #patrat-test { 
+            width: 100px; height: 100px; 
+            background: #000; 
+            margin: 25px auto; 
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        h2 { margin-top: 0; color: var(--primary-blue); font-weight: 600; }
+        
+        .input-group { margin: 20px 0; }
+        
+        input[type="number"] { 
+            width: 80px; padding: 12px; 
+            font-size: 20px; border: 2px solid #e0e0e0; 
+            border-radius: 10px; text-align: center;
+            outline: none; transition: border-color 0.3s;
+        }
+        input:focus { border-color: var(--accent-blue); }
+
+        button { 
+            padding: 14px 40px; cursor: pointer; 
+            background: var(--primary-blue); color: white; 
+            border: none; border-radius: 10px; 
+            font-size: 18px; font-weight: 500;
+            box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3);
+            transition: all 0.3s ease;
+        }
+        button:hover { background: var(--accent-blue); transform: translateY(-2px); }
+
+        /* Branding Lentis */
+        .branding-lentis {
+            position: absolute; bottom: 40px; right: 40px;
+            text-align: right; border-right: 4px solid var(--primary-blue);
+            padding-right: 15px;
+        }
+        .lentis-nume { 
+            font-weight: 800; font-size: 28px; 
+            color: var(--primary-blue); letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+        .copyright { color: #7f8c8d; font-size: 14px; margin-top: -5px; }
+
+        /* Zona de Testare */
+        #display { 
+            font-family: "Courier New", monospace;
+            font-weight: bold; line-height: 1; 
+            text-align: center; user-select: none; 
+            display: none; color: #000;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+        }
+
+        .hud-info {
+            position: fixed; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.8);
+            padding: 5px 20px; border-radius: 20px;
+            font-size: 12px; color: #95a5a6;
+            display: none; border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="calibrare">
+        <div class="card-calibrare">
+            <h2>Sistem Optotip</h2>
+            <p style="color: #666; font-size: 14px;">Măsurați latura pătratului pentru a calibra distanța de 3 metri.</p>
+            
+            <div id="patrat-test"></div>
+            
+            <div class="input-group">
+                <input type="number" id="mm-reali" value="16" autofocus>
+                <span style="display:block; margin-top:8px; font-size:12px; color:#999;">MILIMETRI</span>
+            </div>
+            
+            <button onclick="start()">Inițializează Testul</button>
+        </div>
+
+        <div class="branding-lentis">
+            <div class="lentis-nume">Lentis</div>
+            <div class="copyright">© Copyright 2026</div>
+        </div>
+    </div>
+
+    <div id="display">---</div>
+    <div id="status" class="hud-info">LENTIS OPTOTIP | 3M CALIBRATED</div>
+
+    <script>
+        let raportPxMm = 1;
+        let paginaCurenta = 1;
+        const distantaMm = 3000;
+
+        const pagini = ["E", "F P", "T O Z", "L P E D", "A G D U Z B", "N P O F L G S", "F E L O P Z D"];
+        const scari = [10, 5, 4, 3, 2, 1.5, 1];
+
+        function start() {
+            let mmIntrodusi = document.getElementById('mm-reali').value;
+            raportPxMm = 100 / mmIntrodusi;
+            
+            document.getElementById('calibrare').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('calibrare').style.display = 'none';
+                document.getElementById('display').style.display = 'block';
+                document.getElementById('status').style.display = 'block';
+                afiseaza(1);
+            }, 500);
+        }
+
+        function afiseaza(n) {
+            if (n < 1) n = 1;
+            if (n > pagini.length) n = pagini.length;
+            paginaCurenta = n;
+
+            const inaltimeMm = 4.363 * scari[n-1];
+            const div = document.getElementById('display');
+            div.innerText = pagini[n-1];
+            div.style.fontSize = (inaltimeMm * raportPxMm) + "px";
+            div.style.letterSpacing = (inaltimeMm * raportPxMm * 0.25) + "px";
+            
+            // Animatie subtila la schimbarea literelor
+            div.style.opacity = 0;
+            setTimeout(() => { div.style.opacity = 1; }, 50);
+        }
+
+        window.onmousedown = function(e) {
+            if (document.getElementById('calibrare').style.display === 'none') {
+                if (e.button === 0) afiseaza(paginaCurenta + 1);
+                if (e.button === 2) afiseaza(paginaCurenta - 1);
+            }
+        };
+
+        window.onkeydown = function(e) {
+            if (e.key >= 1 && e.key <= 7) afiseaza(parseInt(e.key));
+            if (e.key === "Enter" && document.getElementById('calibrare').style.display !== 'none') start();
+            if (e.key.toLowerCase() === 'r') location.reload();
+        };
+    </script>
+</body>
+</html>
